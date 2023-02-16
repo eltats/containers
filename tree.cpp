@@ -6,11 +6,14 @@ class Tree_ {
   Tree_();
   int Key;
   unsigned char height;
+  signed char balance;
   Tree_ *Left;
   Tree_ *Right;
   Tree_ *Parent;
   Tree_ *root;
   Tree_ *Insert(Tree_ *node, int key);
+  Tree_ *LeftRotate(Tree_ *node);
+  Tree_ *RightRotate(Tree_ *node);
   char GetBalance(Tree_ *node);
   // unsigned char SetBalance(Tree_ *node);
   void Insert(int key);
@@ -33,11 +36,6 @@ char Tree_::GetBalance(Tree_ *node) {
   return GetHeight(node->Left) - GetHeight(node->Right);
 }
 
-// unsigned char Tree_::SetBalance(Tree_ *node) {
-  
-//   return GetBalance(node);
-// }
-
 Tree_* Tree_::Insert(Tree_ *node, int key) {
   if (node == nullptr) {
     node = new Tree_;
@@ -57,7 +55,19 @@ Tree_* Tree_::Insert(Tree_ *node, int key) {
   }
   node->height = 1 + MAX(GetHeight(node->Left), GetHeight(node->Right));
   char balance = GetBalance(node);
-  std::cout << (int)balance << std::endl;
+  node->balance = balance;
+  if (balance == 2 && node->Left->balance == 1)
+    node = LeftRotate(node);
+  else if (balance == -2 && node->Right->balance == -1)
+    node = RightRotate(node);
+  else if (balance == -2 && node->Right->balance == 1) {
+    node->Right = RightRotate(node->Right);
+    node = LeftRotate(node); // ???????????
+  }
+  else if (balance == 2 && node->Left->balance == -1) {
+    node->Left = LeftRotate(node->Left);
+    node = RightRotate(node); // ???????????
+  }
   return node;
 }
 
@@ -77,6 +87,28 @@ void Tree_::Print() {
   Print(root);
   std::cout << std::endl;
 }
+Tree_* Tree_::LeftRotate(Tree_ *node) {
+  Tree_ *x = node->Left;
+  // Tree_ *tmp = node;
+  node->Left = x->Right;
+  // x->Right = tmp;
+  node->height = 1 + MAX(GetHeight(node->Left), GetHeight(node->Right));
+  x->height = 1 + MAX(GetHeight(x->Left), GetHeight(x->Right));
+  x->balance = GetBalance(x);
+  return x;
+}
+
+Tree_* Tree_::RightRotate(Tree_ *node) {
+  Tree_ *x = node->Right;
+  // Tree_ *tmp = node;
+  node->Right = x->Left;
+  // x->Right = tmp;
+  node->height = 1 + MAX(GetHeight(node->Left), GetHeight(node->Right));
+  x->height = 1 + MAX(GetHeight(x->Left), GetHeight(x->Right));
+  x->balance = GetBalance(x);
+  return x;
+}
+
 
 int main() {
   Tree_ tree;
