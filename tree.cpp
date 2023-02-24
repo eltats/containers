@@ -1,25 +1,25 @@
 #include <iostream>
+#include <iomanip>
+
 #define MAX(a, b) ((a)>(b)?(a):(b))
 
 class Tree_ {
   public:
-  Tree_();
-  int Key;
-  unsigned char height;
-  signed char balance;
-  Tree_ *Left;
-  Tree_ *Right;
-  Tree_ *Parent;
-  Tree_ *root;
-  Tree_ *Insert(Tree_ *node, int key);
-  Tree_ *LeftRotate(Tree_ *node);
-  Tree_ *RightRotate(Tree_ *node);
-  char GetBalance(Tree_ *node);
-  // unsigned char SetBalance(Tree_ *node);
-  void Insert(int key);
-  void Print(Tree_ *node);
-  void Print();
-  unsigned char GetHeight(Tree_ *node);
+    Tree_();
+    void Insert(int key);
+    void Print();
+  // private:
+    Tree_ *Left;
+    Tree_ *Right;
+    int Key;
+    unsigned char GetHeight(Tree_ *node);
+    Tree_ *root;
+    Tree_ *LeftRotate(Tree_ *node);
+    Tree_ *RightRotate(Tree_ *node);
+    char GetBalance(Tree_ *node);
+    Tree_ *Insert(Tree_ *node, int key);
+    void Print(const std::string& prefix, const Tree_* node, bool isLeft);
+    unsigned char height;
 };
 
 Tree_::Tree_() : root(nullptr) {}
@@ -36,88 +36,97 @@ char Tree_::GetBalance(Tree_ *node) {
   return GetHeight(node->Left) - GetHeight(node->Right);
 }
 
+
+void Tree_::Print(const std::string& prefix, const Tree_* node, bool isLeft) {
+  if( node != nullptr ) {
+      std::cout << prefix;
+      std::cout << (isLeft ? "├──" : "└──" );
+      std::cout << ' ' << node->Key << ' ' <<  std::endl;
+      Print(prefix + (isLeft ? "│   " : "    "), node->Left, true);
+      Print(prefix + (isLeft ? "│   " : "    "), node->Right, false);
+  }
+}
+
+void Tree_::Print() {
+    Print("", this->root, false);
+}
+
 Tree_* Tree_::Insert(Tree_ *node, int key) {
+
   if (node == nullptr) {
-    node = new Tree_;
-    node->Key = key;
-    node->Left = nullptr;
-    node->Right = nullptr;
-    node->Parent = nullptr;
-  }
-  else if (node->Key < key) {
-    node->Right = Insert(node->Right, key);
-    node->Right->Parent = node;
-  }
-  else
-  {
-    node->Left = Insert(node->Left, key);
-    node->Left->Parent = node;
-  }
-  node->height = 1 + MAX(GetHeight(node->Left), GetHeight(node->Right));
-  char balance = GetBalance(node);
-  node->balance = balance;
-  if (balance == 2 && node->Left->balance == 1)
-    node = LeftRotate(node);
-  else if (balance == -2 && node->Right->balance == -1)
-    node = RightRotate(node);
-  else if (balance == -2 && node->Right->balance == 1) {
-    node->Right = RightRotate(node->Right);
-    node = LeftRotate(node); // ???????????
-  }
-  else if (balance == 2 && node->Left->balance == -1) {
-    node->Left = LeftRotate(node->Left);
-    node = RightRotate(node); // ???????????
+    Tree_ *res = new Tree_();
+    res->Key = key;
+    res->Left = nullptr;
+    res->Right = nullptr;
+    res->height = 1;
+    return res;
+  } else {
+    if (node->Key < key) {
+      node->Right = Insert(node->Right, key);
+    } else {
+      node->Left = Insert(node->Left, key);
+    }
+    node->height = 1 + MAX(GetHeight(node->Left), GetHeight(node->Right));
+    char balance = GetBalance(node);
+    if (balance == 2 && key < node->Left->Key) {
+      return LeftRotate(node);
+    } else if (balance == -2 && key > node->Left->Key) {
+      return RightRotate(node);
+    }
+    else if (balance == -2 && key < node->Left->Key) {
+      node->Right = RightRotate(node->Right);
+      return LeftRotate(node);
+    } else if (balance == 2 && key > node->Left->Key) {
+      node->Left = LeftRotate(node->Left);
+      return RightRotate(node);
+    }
   }
   return node;
 }
 
 void Tree_::Insert(int key) {
-  root = Insert(root, key); 
+  root = Insert(root, key);
 }
 
-void Tree_::Print(Tree_ *node) {
-  if (node == nullptr)  
-    return;
-  Print(node->Left);
-  std::cout << node->Key << "." << (int)node->height << " ";
-  Print(node->Right);
+Tree_* Tree_::LeftRotate(Tree_ *x) {
+  // Tree_ *x = node;
+  // Tree_ *y = x->Left;
+  // x->Left = y->Right;
+  // y->Right = x;
+  Tree_ *y = x->Right;
+  Tree_ *t2 = y->Left;
+
+  y->Left = x;
+  x->Right = t2;
+  x->height = MAX(GetHeight(x->Left), GetHeight(x->Right));
+  y->height = MAX(GetHeight(y->Left), GetHeight(y->Right));
+  return y;
 }
 
-void Tree_::Print() {
-  Print(root);
-  std::cout << std::endl;
-}
-Tree_* Tree_::LeftRotate(Tree_ *node) {
-  Tree_ *x = node->Left;
-  // Tree_ *tmp = node;
-  node->Left = x->Right;
-  // x->Right = tmp;
-  node->height = 1 + MAX(GetHeight(node->Left), GetHeight(node->Right));
-  x->height = 1 + MAX(GetHeight(x->Left), GetHeight(x->Right));
-  x->balance = GetBalance(x);
+Tree_* Tree_::RightRotate(Tree_ *y) {
+  Tree_ *x = y->Left;
+	Tree_ *T2 = x->Right;
+
+	// Perform 
+	x->Right = y;
+	y->Left = T2;
+  x->height = MAX(GetHeight(x->Left), GetHeight(x->Right));
+  y->height = MAX(GetHeight(y->Left), GetHeight(y->Right));
   return x;
 }
-
-Tree_* Tree_::RightRotate(Tree_ *node) {
-  Tree_ *x = node->Right;
-  // Tree_ *tmp = node;
-  node->Right = x->Left;
-  // x->Right = tmp;
-  node->height = 1 + MAX(GetHeight(node->Left), GetHeight(node->Right));
-  x->height = 1 + MAX(GetHeight(x->Left), GetHeight(x->Right));
-  x->balance = GetBalance(x);
-  return x;
-}
-
 
 int main() {
   Tree_ tree;
   tree.Insert(5);
   tree.Insert(10);
+  tree.Insert(3);
   tree.Insert(12);
   tree.Insert(8);
   tree.Insert(-2);
   tree.Insert(-6);
-  tree.Insert(-3);
+  // tree.Insert(-3);
+  // tree.Insert(-10);
+  // tree.Insert(-12);
+  // tree.Insert(-15);
   tree.Print();
 }
