@@ -52,7 +52,6 @@ void Tree_::Print() {
 }
 
 Tree_* Tree_::Insert(Tree_ *node, int key) {
-
   if (node == nullptr) {
     Tree_ *res = new Tree_();
     res->Key = key;
@@ -69,11 +68,10 @@ Tree_* Tree_::Insert(Tree_ *node, int key) {
     node->height = 1 + MAX(GetHeight(node->Left), GetHeight(node->Right));
     char balance = GetBalance(node);
     if (balance == 2 && key < node->Left->Key) {
-      return LeftRotate(node);
-    } else if (balance == -2 && key > node->Left->Key) {
       return RightRotate(node);
-    }
-    else if (balance == -2 && key < node->Left->Key) {
+    } else if (balance == -2 && key > node->Left->Key) {
+      return LeftRotate(node);
+    } else if (balance == -2 && key < node->Left->Key) {
       node->Right = RightRotate(node->Right);
       return LeftRotate(node);
     } else if (balance == 2 && key > node->Left->Key) {
@@ -89,30 +87,39 @@ void Tree_::Insert(int key) {
 }
 
 Tree_* Tree_::LeftRotate(Tree_ *x) {
-  // Tree_ *x = node;
-  // Tree_ *y = x->Left;
-  // x->Left = y->Right;
-  // y->Right = x;
   Tree_ *y = x->Right;
-  Tree_ *t2 = y->Left;
+	Tree_ *T2 = y->Left;
 
-  y->Left = x;
-  x->Right = t2;
-  x->height = MAX(GetHeight(x->Left), GetHeight(x->Right));
-  y->height = MAX(GetHeight(y->Left), GetHeight(y->Right));
-  return y;
+	// Perform rotation
+	y->Left = x;
+	x->Right = T2;
+
+	// Update heights
+	x->height = MAX(GetHeight(x->Left),
+					GetHeight(x->Right)) + 1;
+	y->height = MAX(GetHeight(y->Left),
+					GetHeight(y->Right)) + 1;
+
+	// Return new root
+	return y;
 }
 
 Tree_* Tree_::RightRotate(Tree_ *y) {
-  Tree_ *x = y->Left;
+	Tree_ *x = y->Left;
 	Tree_ *T2 = x->Right;
 
-	// Perform 
+	// Perform rotation
 	x->Right = y;
 	y->Left = T2;
-  x->height = MAX(GetHeight(x->Left), GetHeight(x->Right));
-  y->height = MAX(GetHeight(y->Left), GetHeight(y->Right));
-  return x;
+
+	// Update heights
+	y->height = MAX(GetHeight(y->Left),
+					GetHeight(y->Right)) + 1;
+	x->height = MAX(GetHeight(x->Left),
+					GetHeight(x->Right)) + 1;
+
+	// Return new root
+	return x;
 }
 
 int main() {
@@ -124,7 +131,7 @@ int main() {
   tree.Insert(8);
   tree.Insert(-2);
   tree.Insert(-6);
-  // tree.Insert(-3);
+  tree.Insert(-3);
   // tree.Insert(-10);
   // tree.Insert(-12);
   // tree.Insert(-15);
